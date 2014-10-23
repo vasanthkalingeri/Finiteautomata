@@ -150,9 +150,6 @@ void build_dfa(int table[NUMSTATES][NUMSYM][NUMSTATES], int final[NUMSTATES])
         valueof(done[i], temp);
         j = 0;
         while(temp[j] != -1)
-        {
-            
-        }
     }    
 }
 
