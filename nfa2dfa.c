@@ -79,13 +79,16 @@ void stringof(int a[],char value[])
         }while(temp != 0);
         value[j++] = ',';
     }
-    value[--j] = '\0';
+    if(j > 0)
+        value[--j] = '\0';
+    else
+        value[0] = '\0';
 }
 
 int present(char string[NUMSTATES + 10])
 {
     int i,j;
-    if(top == 0)
+    if(top == 1)
         return 0;
     for(i=0;i<top;i++)
     {
@@ -95,29 +98,53 @@ int present(char string[NUMSTATES + 10])
     return 0;
 }
 
-void set_union(int a1[], int a2[], int res[])
+void set_union(int a1[], int res[])
 {
     int i,j,present, k;
+    char string[100];
+    k = 0;
+    while(res[k++] != -1);
+    k--;    
     i = 0;
     while(a1[i] != -1)
-        res[k++] = a1[i++];
-    j = 0;
-    while(a2[j] != -1)
     {
-        i = 0;
         present = 0;
-        while(a1[i] != -1)
+        j = 0;
+        while(res[j] != -1)
         {
-            if(a1[i++] == a2[j])
+            if(res[j++] == a1[i])
             {
                 present = 1;
                 break;
             }
         }
         if(!present)
-            res[k++] = a2[j];
-        j++;
+            res[k++] = a1[i];
+        i++;
     }
+    res[k] = -1;
+    
+    stringof(res, string);
+    printf("%s\n", string);
+}
+
+void valueof(char str[], int val[])
+{
+    int i,j, k=0, temp;
+    i = 0;
+    while(i < strlen(str))
+    {
+        temp = 0;
+        j = 0;
+        while(str[i + j] != ',' && str[i+j] != '\0')
+        {
+            temp += (pow(10, j) * (str[i+j] - 48));
+            j++;
+        }
+        val[k++] = temp; 
+        i = i + j + 1;
+    }
+    val[k] = -1;
 }
 
 void build_dfa(int table[NUMSTATES][NUMSYM][NUMSTATES], int final[NUMSTATES])
@@ -127,14 +154,16 @@ void build_dfa(int table[NUMSTATES][NUMSYM][NUMSTATES], int final[NUMSTATES])
     int checkfinal[LIM];
     char dfa[LIM][NUMSYM][NUMSTATES + 10];
     char string[NUMSTATES + 10];
-    int array[NUMSTATES + 1], temp[NUMSTATES + 1];
+    int array[NUMSTATES + 1], temp[NUMSTATES + 1], stackarr[NUMSTATES + 1];
 /*    printf("delta\t");*/
 /*    for(i=0;i<NUMSYM;i++)*/
 /*        printf("%d\t",i);*/
 /*    printf("\n");*/
 
     //First simply copy the initial state of nfa to dfa    
+    strcpy(done[0], "0\0"); 
     k = 1;
+    top = 1;
     for(j=0;j<NUMSYM;j++)
     {
         stringof(table[0][j], string);
@@ -142,23 +171,40 @@ void build_dfa(int table[NUMSTATES][NUMSYM][NUMSTATES], int final[NUMSTATES])
             strcpy(done[top++], string);
         strcpy(dfa[0][j], string);
     }
-        
+    
+/*    for(i=1;i<top;i++)*/
+/*    {*/
+/*        strcpy(string, done[i]);*/
+/*        printf("%s ", string);*/
+/*    }*/
+/*    printf("\n");*/
     //expand all the unseen ones
-    i = 0;
+    i = 1;
     while(i < top)
     {
         valueof(done[i], temp);
         j = 0;
+        array[0] = -1;
+        stringof(array, string);
+        printf("array is %s\n", string);
         while(temp[j] != -1)
         {
-            
+            set_union(table[temp[j]][1], array);
+/*            stringof(array, string);*/
+/*            printf("%s ", string);*/
+/*            stringof(table[0][j], string);*/
+/*            printf("%s ", string);   */
+            j++;
         }
-    }    
+        printf("\n");
+        i++;        
+    }
+    printf("\n");    
 }
 
 int main()
 {
-    int table[NUMSTATES][NUMSYM][NUMSTATES], final[NUMSTATES];
+     int table[NUMSTATES][NUMSYM][NUMSTATES], final[NUMSTATES];
 /*    display(table);*/
     input_nfa(table, final);
     build_dfa(table, final);
